@@ -1,1 +1,185 @@
+!pip install --quiet gspread google-auth google-auth-oauthlib google-generativeai pandas
 
+import gspread
+import pandas as pd
+import google.generativeai as genai
+from typing import List, Dict, Any
+from google.colab import auth
+
+# ================================
+# 1. AUTHENTICATE GOOGLE ACCOUNT
+# ================================
+auth.authenticate_user()
+from google.auth import default
+creds, _ = default()
+gc = gspread.authorize(creds)
+
+# ================================
+# 2. CONFIGURE GEMINI
+# ================================
+# 👉 Replace with API key from https://makersuite.google.com/app/apikey
+GEMINI_API_KEY = "AIzaSyAZbhQ9OMvwXvbi50kY9fbzy-ORrq4ZEXI" #made key
+genai.configure(api_key=GEMINI_API_KEY)
+
+# ================================
+# 3. SPREADSHEET LOADER (robust)
+# ================================
+import string
+
+class SpreadsheetLoader:
+    def load_google_sheet(self, url: str) -> Dict[str, pd.DataFrame]:
+        sh = gc.open_by_url(url)
+        sheets = {}
+        for ws in sh.worksheets():
+            rows = ws.get_all_values()
+            if not rows:
+                continue
+
+            headers = rows[0]
+            seen = {}
+            clean_headers = []
+            for i, h in enumerate(headers):
+                if not h.strip():  
+                    # Use Excel-like column name (A, B, C...)
+                    h = f"Col_{string.ascii_uppercase[i]}"
+                if h in seen:
+                    seen[h] += 1
+                    h = f"{h}_{seen[h]}"
+                else:
+                    seen[h] = 0
+                clean_headers.append(h)
+
+            df = pd.DataFrame(rows[1:], columns=clean_headers)
+            sheets[ws.title] = df
+        return sheets
+
+
+# ================================
+# 4. SEMANTIC SEARCH ENGINE
+# ================================
+class SemanticSearchEngine:
+    def __init__(self):
+        self.semantic_units = []
+
+    def load_spreadsheets(self, sheets: Dict[str, pd.DataFrame]):
+        """Extract semantic content from spreadsheets"""
+        semantic_units = []
+        for sheet_name, df in sheets.items():
+            for row_idx, row in df.iterrows():
+                for col_name, value in row.items():
+                    if pd.isna(value) or str(value).strip() == "":
+                        continue
+                    semantic_units.append({
+                        "concept": str(value),
+                        "header": str(col_name),
+                        "sheet": sheet_name,
+                        "row": row_idx + 2,  # +2 for header + 1-based index
+                    })
+        self.semantic_units = semantic_units
+
+    def query(self, query: str) -> List[Dict[str, Any]]:
+        #"""Ask Gemini to semantically match spreadsheet content with user query"""
+        context = "\n".join([
+            f"{u['concept']} (Sheet:{u['sheet']}, Col:{u['header']}, Row:{u['row']})"
+            for u in self.semantic_units[:300]  # cap bigger for more context
+        ])
+
+        prompt = f"""
+        You are a semantic spreadsheet search assistant.
+
+        User query: "{query}"
+
+        Spreadsheet semantic content:
+        {context}
+
+        --- Instructions ---
+        1. Categorize the query into one of:
+           - Profitability metrics (gross margin, net profit, EBITDA, etc.)
+           - Cost calculations (COGS, expenses, allocations)
+           - Growth rates (YoY, QoQ, CAGR)
+           - Efficiency ratios (ROI, ROE, asset turnover)
+           - Percentage calculations (formulas with % or division patterns)
+           - Average formulas (AVERAGE, SUM/COUNT)
+           - Conditional calculations (IF, SUMIF, COUNTIF)
+           - Lookup formulas (VLOOKUP, INDEX/MATCH, XLOOKUP)
+           - Comparative analysis (budget vs actual, variance, benchmarks, time series)
+
+        2. Find matching spreadsheet entries relevant to the category.
+
+        3. Return results as a JSON list. Each object must include:
+           - concept (business concept name, human readable)
+           - location (e.g. 'SheetName'!ColRow)
+           - value_or_formula (formula/value if identifiable, else "N/A")
+           - relevance (short explanation of why this matches the query)
+
+        4. Keep explanations concise and business-oriented.
+        """
+
+        response = genai.GenerativeModel("gemini-1.5-flash").generate_content(prompt)
+        try:
+            import json
+            return json.loads(response.text)
+        except Exception:
+            return [{
+                "concept": "Parsing Error",
+                "location": "N/A",
+                "value_or_formula": "N/A",
+                "relevance": response.text
+            }]
+
+# ================================
+# 5. INTERFACE 
+# =====================
+class DemoInterface:
+    def __init__(self, search_engine: SemanticSearchEngine):
+        self.search_engine = search_engine
+
+    def format_result(self, result: Dict[str, Any]):
+        print(result["concept"])
+        print(f"├──📍 Location: {result['location']}")
+        print(f"├── 🔢 Value/Formula: {result.get('value_or_formula', 'N/A')}")
+        print(f"└──💡 Relevance: {result['relevance']}")
+        print()
+
+    def run_demo(self):
+        while True:
+            query = input("\n🔍 Enter your query (or 'exit' to quit): ")
+            if query.lower() == "exit":
+                break
+            results = self.search_engine.query(query)
+            print("\n✨ === RESULTS === ✨")
+            for r in results:
+                self.format_result(r)
+
+# ================================
+# 6. MAIN FUNCTION
+# ================================
+def main():
+    print("🎉 Semantic Spreadsheet Search Engine (Gemini-powered)!")
+
+    test_urls = [
+        "https://docs.google.com/spreadsheets/d/1FAQv7_hkbFKXQC-a57YfNHe89awCzyv9tLxhjR4ez0o/edit?usp=sharing",
+        "https://docs.google.com/spreadsheets/d/14eiRz4_IevXEIWcxkJHALf6jdF6DjF-TGD6FScV7aYo/edit?usp=sharing"
+    ]
+
+    loader = SpreadsheetLoader()
+    all_sheets_data = {}
+    for url in test_urls:
+        print(f"\n📥 Loading {url} ...")
+        try:
+            sheets = loader.load_google_sheet(url)
+            all_sheets_data.update(sheets)
+            print(f"✅ Loaded {len(sheets)} sheets")
+        except Exception as e:
+            print(f"⚠️ Could not load: {e}")
+
+    search_engine = SemanticSearchEngine()
+    search_engine.load_spreadsheets(all_sheets_data)
+
+    demo = DemoInterface(search_engine)
+    demo.run_demo()
+
+# ================================
+# 7. RUN MAIN
+# ================================
+main()
