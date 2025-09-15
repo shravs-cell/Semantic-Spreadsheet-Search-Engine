@@ -18,7 +18,7 @@ gc = gspread.authorize(creds)
 # 2. CONFIGURE GEMINI
 # ================================
 # 👉 Replace with API key from https://makersuite.google.com/app/apikey
-GEMINI_API_KEY = "AIzaSyAZbhQ9OMvwXvbi50kY9fbzy-ORrq4ZE" #made key
+GEMINI_API_KEY = "AIzaSyAZbhQ9OMvwX" #made key
 genai.configure(api_key=GEMINI_API_KEY)
 
 # ================================
