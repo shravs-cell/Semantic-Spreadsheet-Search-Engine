@@ -246,29 +246,28 @@ pythonengine = SemanticSearchEngine()
 engine.load_spreadsheets(sheets_data)
 results = engine.search("query", top_k=5)
 
-SearchResult
-pythonresult.concept_name      # Business concept identified
-result.location         # Sheet and cell reference
-result.value           # Cell value
-result.formula         # Excel formula if present
-result.relevance_score # Relevance score (0-1)
-result.explanation     # Why this matched the query
-Utility Functions
-python# Quick demonstrations
+Utility Functions python# Quick demonstrations
 quick_start()                    # Instant demo
+
 test_with_sample_data()         # Sample data testing
+
 run_ultimate_demonstration()    # Complete feature showcase
 
 # Analysis functions
 analyze_performance()           # Performance benchmarks
+
 run_evaluation()               # Quality assessment
+
 generate_comprehensive_documentation()  # Technical docs
 
 # Business scenarios
 finance_manager_scenario()      # Financial analysis use case
+
 sales_analyst_scenario()       # Sales analysis use case
+
 executive_dashboard_scenario()  # Executive KPI use case
-Performance Characteristics
+
+#Performance Characteristics
 
 Loading Time: ~2-3 seconds for 1000 cells
 
