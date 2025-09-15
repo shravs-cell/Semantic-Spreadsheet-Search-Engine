@@ -1,7 +1,7 @@
 # Semantic-Spreadsheet-Search-Engine
 Search engine for spreadsheet 1.Using Gemini AI 2. Without using AI
 
-1.Using Gemini AI
+# 1.Using Gemini AI
 
 📊 Semantic Spreadsheet Search Engine (Gemini-powered)
 
@@ -14,7 +14,7 @@ Example:
 
 “Budget vs actual analysis” → Variance calculations, comparison ratios
 
-🚀 Features
+# 🚀 Features
 
 🔍 Semantic Search – Ask natural-language business queries.
 
@@ -112,9 +112,9 @@ Requires Gemini API availability.
 "Show percentage calculations"
 "Budget vs actual analysis"
 
-2.Without AI
+# 2.Without AI
 
-Key Features
+# Key Features
 
 Semantic Understanding: Recognizes business concepts like revenue, costs, margins, ratios
 
@@ -243,7 +243,9 @@ Core Classes
 SemanticSearchEngine
 
 pythonengine = SemanticSearchEngine()
+
 engine.load_spreadsheets(sheets_data)
+
 results = engine.search("query", top_k=5)
 
 Utility Functions python# Quick demonstrations
@@ -267,7 +269,7 @@ sales_analyst_scenario()       # Sales analysis use case
 
 executive_dashboard_scenario()  # Executive KPI use case
 
-#Performance Characteristics
+# Performance Characteristics
 
 Loading Time: ~2-3 seconds for 1000 cells
 
@@ -279,7 +281,7 @@ Accuracy: 85-95% on well-structured data
 
 Scalability: Handles up to 10,000 cells efficiently
 
-Examples and Demos
+# Examples and Demos
 Financial Analysis python# Load financial data and run analysis
 
 engine = SemanticSearchEngine()
