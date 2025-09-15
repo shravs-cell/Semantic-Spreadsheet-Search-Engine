@@ -42,16 +42,18 @@ from google.colab import auth
 auth.authenticate_user()
 
 
-Gemini API Key – Get one from Google AI Studio
- and configure:
+Gemini API Key – Get one from Google AI Studio and configure:
 
 import google.generativeai as genai
 genai.configure(api_key="YOUR_API_KEY")
 
 🏗️ Project Structure
 ├── SpreadsheetLoader      # Loads and cleans Google Sheets
+
 ├── SemanticSearchEngine   # Handles query processing & semantic matching
+
 ├── DemoInterface          # CLI for interactive querying
+
 ├── main()                 # Entry point
 
 ⚙️ Usage
