@@ -1,6 +1,7 @@
 # Semantic-Spreadsheet-Search-Engine
 Search engine for spreadsheet 1.Using Gemini AI 2. Without using AI
 1.Using Gemini AI
+
 📊 Semantic Spreadsheet Search Engine (Gemini-powered)
 A Google Sheets + Gemini AI powered search engine that allows you to query spreadsheets using business-friendly semantic queries instead of raw keywords.
 Example:
